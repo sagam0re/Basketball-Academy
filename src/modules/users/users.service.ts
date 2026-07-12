@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateUserDto } from './dto/user.dto';
+import bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -26,7 +27,22 @@ export class UsersService {
             throw new NotFoundException('User not found');
         }
 
-        return await this.prisma.user.update({ where: { id }, data: updateUserData });
+        if (updateUserData.email) {
+            console.log(updateUserData.email);
+            const existingUserByEmail = await this.prisma.user.findUnique({ where: { email: updateUserData.email } });
+            if (existingUserByEmail) {
+                throw new BadRequestException('User with this email already exists');
+            }
+        }
+
+        if (updateUserData.password) {
+            const salt = await bcrypt.genSalt();
+            updateUserData.password = await bcrypt.hash(updateUserData.password, salt);
+        }
+
+        const updatedUser = await this.prisma.user.update({ where: { id }, data: updateUserData });
+        const { password, ...userWithoutPassword } = updatedUser;
+        return userWithoutPassword;
     }
 
     async remove(id: number) {
