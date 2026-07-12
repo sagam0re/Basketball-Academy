@@ -12,7 +12,6 @@ export class AuthService {
     ) { }
 
     async register(dto: RegisterDto) {
-        // 1. Check if user already exists
         const existingUser = await this.prisma.user.findFirst({
             where: { email: dto.email }
         });
@@ -24,9 +23,6 @@ export class AuthService {
         const salt = await bcrypt.genSalt();
         const hashedPassword = await bcrypt.hash(dto.password, salt);
 
-        console.log(' hashedPassword', hashedPassword);
-        console.log(typeof hashedPassword);
-
         const user = await this.prisma.user.create({
             data: {
                 email: dto.email,
@@ -37,7 +33,6 @@ export class AuthService {
             }
         });
 
-        // 4. Return sanitized user data (exclude password)
         const { password, ...userWithoutPassword } = user;
         return userWithoutPassword;
     }

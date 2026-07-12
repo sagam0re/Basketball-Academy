@@ -17,7 +17,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
         if (exception instanceof BadRequestException) {
             const exceptionResponse = exception.getResponse() as any;
 
-            // ValidationPipe errors return an array of strings in the 'message' field
             if (Array.isArray(exceptionResponse.message)) {
                 problemDetails = {
                     ...problemDetails,
@@ -26,7 +25,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
                     errors: exceptionResponse.message,
                 };
             } else {
-                // Handle standard Bad Requests that aren't validation errors
                 problemDetails = {
                     ...problemDetails,
                     statusCode: exception.getStatus(),
@@ -35,7 +33,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
             }
         }
         else if (exception instanceof HttpException) {
-            // Handle all other HTTP Exceptions (Unauthorized, NotFound, etc.)
             problemDetails = {
                 ...problemDetails,
                 statusCode: exception.getStatus(),
