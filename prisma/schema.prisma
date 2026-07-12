@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  STAFF
+  COACH
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+}
+
+model User {
+  id        Int    @id @default(autoincrement())
+  email     String @unique
+  password  String
+  firstName String
+  lastName  String
+  role      Role   @default(STAFF)
+
+  // Relations
+  groups   Group[] // If the user is a coach, they manage these groups
+  payments Payment[] // Payments recorded by this admin/staff
+  bookings Booking[] // Bookings made by this user
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Group {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  // Relations
+  coachId  Int?
+  coach    User?     @relation(fields: [coachId], references: [id])
+  students Student[]
+  bookings Booking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Student {
+  id          Int      @id @default(autoincrement())
+  firstName   String
+  lastName    String
+  dateOfBirth DateTime
+  parentName  String
+  parentPhone String
+
+  // Financial Tracking for MVP (Negative means they owe money, positive means overpaid)
+  balance Float @default(0.0)
+
+  // Relations
+  groupId  Int?
+  group    Group?    @relation(fields: [groupId], references: [id])
+  payments Payment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Payment {
+  id            Int           @id @default(autoincrement())
+  amount        Float
+  paymentMethod PaymentMethod
+  paymentDate   DateTime      @default(now())
+
+  // Relations
+  studentId Int
+  student   Student @relation(fields: [studentId], references: [id])
+
+  recordedById Int
+  recordedBy   User @relation(fields: [recordedById], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Court {
+  id   Int    @id @default(autoincrement())
+  name String // e.g., "Main Court A", "Practice Court 1"
+
+  // Relations
+  bookings Booking[]
+}
+
+model Booking {
+  id        Int      @id @default(autoincrement())
+  startTime DateTime
+  endTime   DateTime
+
+  // Relations
+  courtId Int
+  court   Court @relation(fields: [courtId], references: [id])
+
+  bookedById Int
+  bookedBy   User @relation(fields: [bookedById], references: [id])
+
+  groupId Int?
+  group   Group? @relation(fields: [groupId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // This composite index helps quickly query for court conflicts
+  @@index([courtId, startTime, endTime])
+}
