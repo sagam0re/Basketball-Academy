@@ -7,6 +7,9 @@ import { SwaggerDocumentBuilder } from './config/swagger/swagger-document-builde
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Configure Global Prefix
+  app.setGlobalPrefix(`api/${process.env.API_VERSION}`);
+
   // Configure Swagger
   const swaggerDocumentBuilder = new SwaggerDocumentBuilder(app);
   swaggerDocumentBuilder.buildDocument();
@@ -16,9 +19,6 @@ async function bootstrap() {
 
   // Configure Global Filters
   app.useGlobalFilters(new AllExceptionsFilter());
-
-  // Configure Global Prefix
-  app.setGlobalPrefix('api/v1');
 
   // Start Server
   console.log('Server is running on port', process.env.PORT ?? 3000);

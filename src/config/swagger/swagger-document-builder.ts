@@ -10,7 +10,7 @@ export class SwaggerDocumentBuilder {
         const documentBuilder = new DocumentBuilder()
             .setTitle('Basketball Academy API')
             .setDescription('Basketball Academy API')
-            .setVersion('1.0')
+            .setVersion(process.env.API_VERSION as string)
             .addTag('users')
             .addTag('auth')
             .addBearerAuth()
@@ -45,6 +45,6 @@ export class SwaggerDocumentBuilder {
 
     public buildDocument() {
         const document = SwaggerModule.createDocument(this.app, this.build());
-        SwaggerModule.setup('api/v1/docs', this.app, document);
+        SwaggerModule.setup(`api/${process.env.API_VERSION}/docs`, this.app, document);
     }
 }
