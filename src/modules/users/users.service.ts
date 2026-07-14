@@ -1,6 +1,6 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { UpdateUserDto } from './dto/user.dto';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from 'src/database/prisma/prisma.service';
+import { RegisterDto, UpdateUserDto } from './dto/user.dto';
 import bcrypt from 'bcrypt';
 
 @Injectable()
@@ -18,6 +18,41 @@ export class UsersService {
             throw new NotFoundException('User not found');
         }
         return existingUser;
+    }
+
+    async findOneByEmail(email: string) {
+        const existingUser = await this.prisma.user.findUnique({ where: { email } });
+
+        if (!existingUser) {
+            throw new NotFoundException('User not found');
+        }
+        return existingUser;
+    }
+
+    async register(dto: RegisterDto) {
+        const existingUser = await this.prisma.user.findFirst({
+            where: { email: dto.email }
+        });
+
+        if (existingUser) {
+            throw new ConflictException('Email already registered');
+        }
+
+        const salt = await bcrypt.genSalt();
+        const hashedPassword = await bcrypt.hash(dto.password, salt);
+
+        const user = await this.prisma.user.create({
+            data: {
+                email: dto.email,
+                password: hashedPassword,
+                firstName: dto.firstName,
+                lastName: dto.lastName,
+                role: dto.role
+            }
+        });
+
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
     }
 
     async update(id: number, updateUserData: UpdateUserDto) {

@@ -1,46 +1,20 @@
 import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { LoginDto, RegisterDto } from './dto/auth.dto';
+import { PrismaService } from '../../database/prisma/prisma.service';
+import { LoginDto } from './dto/auth.dto';
 import bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
     constructor(
-        private prisma: PrismaService,
+        //private prisma: PrismaService,
+        private usersService: UsersService,
         private jwtService: JwtService
     ) { }
 
-    async register(dto: RegisterDto) {
-        const existingUser = await this.prisma.user.findFirst({
-            where: { email: dto.email }
-        });
-
-        if (existingUser) {
-            throw new ConflictException('Email already registered');
-        }
-
-        const salt = await bcrypt.genSalt();
-        const hashedPassword = await bcrypt.hash(dto.password, salt);
-
-        const user = await this.prisma.user.create({
-            data: {
-                email: dto.email,
-                password: hashedPassword,
-                firstName: dto.firstName,
-                lastName: dto.lastName,
-                role: dto.role
-            }
-        });
-
-        const { password, ...userWithoutPassword } = user;
-        return userWithoutPassword;
-    }
-
     async login(dto: LoginDto) {
-        const user = await this.prisma.user.findUnique({
-            where: { email: dto.email }
-        });
+        const user = await this.usersService.findOneByEmail(dto.email);
 
         if (!user) {
             throw new UnauthorizedException('Invalid credentials');

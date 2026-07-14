@@ -5,7 +5,7 @@ import { StudentsModule } from './modules/students/students.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
-import { PrismaModule } from './prisma/prisma.module';
+import { PrismaModule } from './database/prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({

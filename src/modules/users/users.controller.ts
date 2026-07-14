@@ -11,41 +11,52 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import { UpdateUserDto } from './dto/user.dto';
+import { RegisterDto, UpdateUserDto } from './dto/user.dto';
+import { Roles } from 'src/common/guards/roles.decorator';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { AppUserRoles } from 'src/database/interfaces/role.interface';
 
 @Controller('users')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
     constructor(private readonly usersService: UsersService) { }
 
+    @Post('register')
+    async register(@Body() registerDto: RegisterDto) {
+        return this.usersService.register(registerDto);
+    }
+
     // Route to get all users (admin only)
     @Get()
+    @Roles([AppUserRoles.ADMIN])
     findAll(@Req() req: Request) {
-        // req['user'] is injected by the AuthGuard
-        // You can add role checking here if needed
         return this.usersService.findAll();
     }
 
     // Route to get current user profile
     @Get('me')
+    @Roles([AppUserRoles.ADMIN, AppUserRoles.COACH, AppUserRoles.USER])
     findMe(@Req() req: Request) {
         return req['user'];
     }
 
     // Route to get a single user by ID
     @Get(':id')
+    @Roles([AppUserRoles.ADMIN, AppUserRoles.COACH, AppUserRoles.USER])
     findOne(@Param('id') id: string) {
         return this.usersService.findOne(+id);
     }
 
     // Route to update a user
     @Patch(':id')
+    @Roles([AppUserRoles.ADMIN, AppUserRoles.COACH, AppUserRoles.USER])
     update(@Param('id') id: string, @Body() updateUserData: UpdateUserDto) {
         return this.usersService.update(+id, updateUserData);
     }
 
     // Route to delete a user
     @Delete(':id')
+    @Roles([AppUserRoles.ADMIN, AppUserRoles.COACH, AppUserRoles.USER])
     remove(@Param('id') id: string) {
         return this.usersService.remove(+id);
     }
