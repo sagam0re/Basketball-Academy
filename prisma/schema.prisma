@@ -10,6 +10,7 @@ enum Role {
   ADMIN
   STAFF
   COACH
+  USER
 }
 
 enum PaymentMethod {
@@ -23,7 +24,7 @@ model User {
   password  String
   firstName String
   lastName  String
-  role      Role   @default(STAFF)
+  role      Role[] @default([USER])
 
   // Relations
   groups   Group[] // If the user is a coach, they manage these groups

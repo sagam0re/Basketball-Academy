@@ -19,9 +19,9 @@ import { ConfigModule } from '@nestjs/config';
     PaymentsModule,
     BookingsModule,
     DashboardModule,
-    PrismaModule
+    PrismaModule,
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule { }
+export class AppModule {}

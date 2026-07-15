@@ -3,18 +3,19 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { PrismaModule } from 'src/database/prisma/prisma.module';
+import { UsersModule } from 'src/modules/users/users.module';
 
 @Module({
   imports: [
-    PrismaModule,
+    UsersModule,
     JwtModule.registerAsync({
       global: true,
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') || '15m') as any,
+          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') ||
+            '15m') as any,
         },
       }),
     }),
@@ -23,4 +24,4 @@ import { PrismaModule } from 'src/database/prisma/prisma.module';
   providers: [AuthService],
   exports: [AuthService],
 })
-export class AuthModule { }
+export class AuthModule {}
